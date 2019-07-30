@@ -6,6 +6,10 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Engine/World.h"
+#include "UnitCharacter.h"
+#include "UnitPlayerController.h"
+#include "DrawDebugHelpers.h"
 
 //For Debugging
 #include "Engine/Engine.h"
@@ -30,13 +34,14 @@ APlayerUnitControllerPawn::APlayerUnitControllerPawn()
 
 	FRotator cameraRot(-45.0f,0,0);
 	Camera->SetRelativeRotation(cameraRot);
+	controlledCharacter = nullptr;
 }
 
 // Called when the game starts or when spawned
 void APlayerUnitControllerPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	playerController = GetWorld()->GetFirstPlayerController<AUnitPlayerController>();
 }
 
 // Called every frame
@@ -56,6 +61,8 @@ void APlayerUnitControllerPawn::SetupPlayerInputComponent(UInputComponent* Playe
 	PlayerInputComponent->BindAxis("Vertical", this, &APlayerUnitControllerPawn::InputVertical);
 	
 	PlayerInputComponent->BindAction("Exit", EInputEvent::IE_Pressed, this, &APlayerUnitControllerPawn::Exit);
+	PlayerInputComponent->BindAction("RightClick", EInputEvent::IE_Pressed, this, &APlayerUnitControllerPawn::CheckForCharacter);
+	PlayerInputComponent->BindAction("LeftClick", EInputEvent::IE_Pressed, this, &APlayerUnitControllerPawn::CheckForDestination);
 }
 
 void APlayerUnitControllerPawn::InputHorizontal(float value) {
@@ -83,5 +90,54 @@ void APlayerUnitControllerPawn::InputVertical(float value) {
 
 void APlayerUnitControllerPawn::Exit() {
 	FGenericPlatformMisc::RequestExit(false);
+}
+
+void APlayerUnitControllerPawn::CheckForCharacter() {
+	FVector mousePosition, mouseDirection;
+	if (playerController->DeprojectMousePositionToWorld(mousePosition, mouseDirection)){
+		FHitResult hit;
+		
+		UWorld* world = GetWorld();
+
+		if (world != NULL) {
+			DrawDebugLine(world, mousePosition, mousePosition + (mouseDirection * 1000), FColor::Red, false, 1.0f);
+			if (world->LineTraceSingleByChannel(hit, mousePosition, (mousePosition + mouseDirection * 1000),
+				ECollisionChannel::ECC_Visibility,
+				FCollisionQueryParams::DefaultQueryParam,
+				FCollisionResponseParams::DefaultResponseParam)) {
+				//controlledCharacter->Move(hit.Location);
+				if (hit.GetActor() != NULL) {
+					AUnitCharacter* character = Cast<AUnitCharacter>(hit.GetActor());
+					if (character) {
+						DrawDebugPoint(world, hit.Location, 100.0f, FColor::Blue);
+						controlledCharacter = character;
+					}
+					else {
+						controlledCharacter = nullptr;
+					}
+				}
+			}
+		}
+	}
+}
+
+void APlayerUnitControllerPawn::CheckForDestination() {
+	FVector mousePosition, mouseDirection;
+	if (playerController->DeprojectMousePositionToWorld(mousePosition, mouseDirection)) {
+		FHitResult hit;
+		UWorld* world = GetWorld();
+
+		if (world != NULL) {
+			DrawDebugLine(world, mousePosition, mousePosition + (mouseDirection * 1000), FColor::Red, false, 1.0f);
+			if (world->LineTraceSingleByChannel(hit, mousePosition, (mousePosition + mouseDirection * 1000),
+				ECollisionChannel::ECC_Visibility,
+				FCollisionQueryParams::DefaultQueryParam,
+				FCollisionResponseParams::DefaultResponseParam)) {
+				if (controlledCharacter != nullptr) {
+					controlledCharacter->Move(hit.Location);
+				}
+			}
+		}
+	}
 }
 

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "PlayerUnitControllerPawn.generated.h"
+class AUnitCharacter;
+class AUnitPlayerController;
 
 UCLASS()
 class PROJECTCRPG_API APlayerUnitControllerPawn : public APawn
@@ -39,4 +41,16 @@ private:
 	void InputVertical(float value);
 	void InputHorizontal(float value);
 	void Exit();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player, meta = (AllowPrivateAccess = "true"))
+	AUnitPlayerController* playerController;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Player, meta = (AllowPrivateAccess = "true"))
+	AUnitCharacter* controlledCharacter;
+	//Raycast for character
+	void CheckForCharacter();
+	//Raycast for point for character to move to
+	void CheckForDestination();
+
+	//Get Mouse click
 };
