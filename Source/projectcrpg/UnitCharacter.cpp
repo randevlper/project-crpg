@@ -2,6 +2,7 @@
 
 
 #include "UnitCharacter.h"
+#include "UnitAIController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
@@ -16,18 +17,18 @@ AUnitCharacter::AUnitCharacter()
 void AUnitCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	unitAI = Cast<AUnitAIController>(GetController());
 }
 
 // Called every frame
 void AUnitCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (true) {
-		FVector dir = (destination - GetActorTransform().GetLocation());
-		dir.Normalize();
-		GetMovementComponent()->AddInputVector(dir);
-	}
+	//if (true) {
+	//	FVector dir = (destination - GetActorTransform().GetLocation());
+	//	dir.Normalize();
+	//	GetMovementComponent()->AddInputVector(dir);
+	//}
 }
 
 // Called to bind functionality to input
@@ -38,6 +39,8 @@ void AUnitCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 }
 
 void AUnitCharacter::Move(FVector pos) {
-	destination = pos;
+	if (unitAI != nullptr) {
+		unitAI->GoToDestination(pos);
+	}
 }
 

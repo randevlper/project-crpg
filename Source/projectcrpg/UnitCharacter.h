@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "UnitCharacter.generated.h"
+class AUnitAIController;
 
 UCLASS()
 class PROJECTCRPG_API AUnitCharacter : public ACharacter
@@ -20,6 +21,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	FVector destination;
+	AUnitAIController* unitAI;
 
 public:	
 	// Called every frame
